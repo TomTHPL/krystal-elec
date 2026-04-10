@@ -1,6 +1,7 @@
 # Build
 dist/
 build/
+build_fresh/
 __pycache__/
 *.pyc
 *.pyo
