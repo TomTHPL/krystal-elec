@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pip show:*)",
+      "Bash(python -c \"import customtkinter; print\\(customtkinter.__file__\\)\")",
+      "Bash(pip install:*)",
+      "Bash(pyinstaller --version)",
+      "Bash(python -c \"import customtkinter; import os; print\\(os.path.dirname\\(customtkinter.__file__\\)\\)\")",
+      "Bash(pyinstaller krystalec.spec --clean)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Read(//c/Program Files/**)",
+      "Bash(\"C:/Program Files \\(x86\\)/Inno Setup 6/ISCC.exe\" installer.iss)",
+      "Bash(git --version)",
+      "Bash(gh --version)",
+      "Bash(cmd /c \"gh --version\")",
+      "Bash(cmd /c \"where gh\")",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' auth status)"
+    ]
+  }
+}

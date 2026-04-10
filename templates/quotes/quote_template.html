@@ -1,0 +1,115 @@
+<div class="quote-shell">
+    <table class="sheet-frame">
+        <tr>
+            <td>
+                <table class="header-table">
+                    <tr>
+                        <td class="header-logo-cell">
+                            <table class="logo-layout">
+                                <tr>
+                                    <td class="logo-cell">$logo_html</td>
+                                    <td class="brand-cell">
+                                        <div class="brand-name">$company_name</div>
+                                        <div class="brand-tagline">$company_tagline</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="header-meta-cell">
+                            <div class="meta-title">DEVIS N&deg; : $quote_number</div>
+                            <div class="meta-date">Date : $quote_date</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="divider-strip"></div>
+
+                <table class="parties-table">
+                    <tr>
+                        <td class="company-panel">
+                            <div class="panel-title">Entreprise</div>
+                            <div class="company-line">$company_address</div>
+                            <div class="company-line">Tel : $company_phone</div>
+                            <div class="company-line">Email : $company_email</div>
+                        </td>
+                        <td class="client-panel">
+                            <div class="panel-title">Client</div>
+                            <table class="client-details">
+                                <tr>
+                                    <td class="client-detail-label">Nom :</td>
+                                    <td class="client-detail-value">$client_name</td>
+                                </tr>
+                                <tr>
+                                    <td class="client-detail-label">Adresse :</td>
+                                    <td class="client-detail-value">$client_address</td>
+                                </tr>
+                                <tr>
+                                    <td class="client-detail-label">T&eacute;l :</td>
+                                    <td class="client-detail-value">$client_phone</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="divider-strip"></div>
+
+                <table class="quote-lines-table">
+                    <thead>
+                        <tr>
+                            <th class="col-designation">D&eacute;signation</th>
+                            <th class="col-qty">Qt&eacute;</th>
+                            <th class="col-unit">U</th>
+                            <th class="col-total">TOTAL HT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        $line_rows
+                        $table_padding_rows
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td class="total-empty-area" colspan="2"></td>
+                            <td class="total-caption">TOTAL</td>
+                            <td class="total-amount">$total_amount</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="divider-strip divider-strip-bottom"></div>
+
+                <div class="section-block">
+                    <div class="section-title">CONDITIONS</div>
+                    <ul class="conditions-list">
+                        $conditions_html
+                    </ul>
+                    <div class="legal-text">Mentions legales : $legal_notice</div>
+                </div>
+
+                <div class="section-block acceptance-block">
+                    <div class="section-title">ACCEPTATION DU DEVIS</div>
+                    <div class="acceptance-text">$acceptance_text</div>
+                    <table class="acceptance-table">
+                        <tr>
+                            <td class="acceptance-left">Montant total accepte :</td>
+                            <td class="acceptance-right">$acceptance_amount TTC</td>
+                        </tr>
+                    </table>
+
+                    <table class="signatures-table">
+                        <tr>
+                            <td class="signature-panel">
+                                <div class="signature-label">Signature du client :</div>
+                                <div class="signature-space"></div>
+                            </td>
+                            <td class="signature-panel signature-panel-right">
+                                <div class="signature-label">Signature de l'electricien :</div>
+                                <div class="signature-space"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>

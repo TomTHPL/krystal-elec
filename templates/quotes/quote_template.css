@@ -1,0 +1,338 @@
+@page {
+    size: A4;
+    margin: 5mm;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "DejaVu Sans", Arial, sans-serif;
+    font-size: 11pt;
+    color: #151515;
+    background: #ffffff;
+}
+
+.quote-shell {
+    width: 100%;
+}
+
+.sheet-frame {
+    width: 100%;
+    border: 2px solid #090909;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.sheet-frame td {
+    padding: 0;
+    vertical-align: top;
+}
+
+.header-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.header-logo-cell {
+    width: 47%;
+    padding: 14px 16px;
+    border-right: 2px solid #090909;
+}
+
+.header-meta-cell {
+    width: 53%;
+    padding: 18px 14px;
+    background: #386fb5;
+    color: #ffffff;
+    text-align: center;
+}
+
+.logo-layout {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.logo-cell {
+    width: 120px;
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+.brand-cell {
+    vertical-align: middle;
+}
+
+.logo-image {
+    width: 112px;
+    max-height: 86px;
+    object-fit: contain;
+}
+
+.logo-fallback {
+    width: 108px;
+    height: 78px;
+    line-height: 78px;
+    text-align: center;
+    font-size: 26pt;
+    font-weight: 700;
+    color: #153f7a;
+    border: 2px solid #8aaee0;
+    background: #edf4ff;
+}
+
+.brand-name {
+    font-size: 31pt;
+    line-height: 1;
+    font-weight: 700;
+    color: #12386c;
+}
+
+.brand-tagline {
+    margin-top: 6px;
+    font-size: 12pt;
+    line-height: 1.2;
+    color: #243142;
+}
+
+.meta-title {
+    font-size: 24pt;
+    line-height: 1.15;
+    font-weight: 700;
+    margin-bottom: 34px;
+}
+
+.meta-date {
+    font-size: 15pt;
+    line-height: 1.2;
+}
+
+.divider-strip {
+    height: 10px;
+    background: #386fb5;
+    border-top: 2px solid #090909;
+    border-bottom: 4px solid #f2df24;
+}
+
+.divider-strip-bottom {
+    margin-top: 0;
+}
+
+.parties-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.parties-table td {
+    padding: 18px 18px 20px;
+    vertical-align: top;
+}
+
+.company-panel,
+.client-panel {
+    width: 50%;
+}
+
+.panel-title {
+    margin-bottom: 12px;
+    color: #386fb5;
+    font-size: 14pt;
+    text-decoration: underline;
+}
+
+.company-line {
+    color: #386fb5;
+    line-height: 1.48;
+    font-size: 11.5pt;
+}
+
+.client-details {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.client-details td {
+    padding: 1px 0;
+    vertical-align: top;
+    line-height: 1.45;
+    font-size: 11.5pt;
+}
+
+.client-detail-label {
+    width: 105px;
+    color: #386fb5;
+}
+
+.client-detail-value {
+    color: #171717;
+}
+
+.quote-lines-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.quote-lines-table th {
+    background: #386fb5;
+    color: #ffffff;
+    border: 2px solid #090909;
+    padding: 8px 6px;
+    font-size: 13pt;
+    font-weight: 700;
+    text-align: center;
+}
+
+.quote-lines-table td {
+    border: 1.6px solid #090909;
+    padding: 7px 6px;
+    font-size: 11pt;
+    vertical-align: top;
+}
+
+.col-designation {
+    width: 60%;
+}
+
+.col-qty {
+    width: 9%;
+}
+
+.col-unit {
+    width: 11%;
+}
+
+.col-total {
+    width: 20%;
+}
+
+.designation-cell {
+    line-height: 1.42;
+    min-height: 28px;
+}
+
+.center-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.amount-cell {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.empty-row td {
+    height: 34px;
+}
+
+.total-row td {
+    border: 2px solid #090909;
+}
+
+.total-empty-area {
+    height: 62px;
+    background: #ffffff;
+}
+
+.total-caption {
+    background: #386fb5;
+    color: #ffffff;
+    font-size: 15pt;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.total-amount {
+    font-size: 15pt;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.section-block {
+    padding: 12px 18px 0;
+}
+
+.acceptance-block {
+    padding-bottom: 14px;
+}
+
+.section-title {
+    font-size: 14pt;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.conditions-list {
+    margin: 0 0 10px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.conditions-list li {
+    margin: 0 0 7px 0;
+    line-height: 1.35;
+}
+
+.legal-text {
+    font-size: 11pt;
+    margin-bottom: 34px;
+}
+
+.acceptance-text {
+    line-height: 1.7;
+    margin-bottom: 18px;
+}
+
+.acceptance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+}
+
+.acceptance-table td {
+    padding: 0;
+    font-size: 11.5pt;
+}
+
+.acceptance-left {
+    width: 74%;
+}
+
+.acceptance-right {
+    width: 26%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.signatures-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.signatures-table td {
+    padding: 0;
+    vertical-align: top;
+}
+
+.signature-panel {
+    width: 50%;
+}
+
+.signature-panel-right {
+    padding-left: 34px;
+}
+
+.signature-label {
+    font-size: 11.5pt;
+    margin-bottom: 72px;
+}
+
+.signature-space {
+    height: 50px;
+}

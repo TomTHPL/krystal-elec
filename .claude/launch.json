@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Krystal Elec",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["main.py"],
+      "port": null
+    }
+  ]
+}

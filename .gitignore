@@ -1,0 +1,23 @@
+# Build
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.spec
+
+# Base de données locale
+data/
+*.db
+
+# Exports PDF
+exports/
+
+# Environnement Python
+.venv/
+venv/
+env/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
