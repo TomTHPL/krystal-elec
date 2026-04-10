@@ -1,3 +1,5 @@
+import threading
+
 import customtkinter as ctk
 
 try:
@@ -8,6 +10,8 @@ except ImportError:  # pragma: no cover - optional dependency fallback
 
 from app_paths import get_app_paths
 from database import init_database
+from services.updater_service import check_for_update, download_and_launch_installer
+from version import __version__, GITHUB_REPO
 from repositories.appointment_repository import AppointmentRepository
 from repositories.catalog_item_repository import CatalogItemRepository
 from repositories.client_repository import ClientRepository
@@ -48,6 +52,9 @@ class KrystalElecApp(ctk.CTk):
         self.logo_source_image = self._load_logo_image()
 
         self.grid_columnconfigure(1, weight=1)
+
+        # Vérification des mises à jour en arrière-plan
+        threading.Thread(target=self._check_update_async, daemon=True).start()
         self.grid_rowconfigure(0, weight=1)
 
         self._build_sidebar()
@@ -147,7 +154,7 @@ class KrystalElecApp(ctk.CTk):
 
         footer = ctk.CTkLabel(
             self.sidebar,
-            text="Krystal Elec  ·  v1.0",
+            text=f"Krystal Elec  ·  v{__version__}",
             font=ctk.CTkFont(size=10),
             text_color="#3f5a74",
         )
@@ -277,3 +284,51 @@ class KrystalElecApp(ctk.CTk):
 
         image = Image.open(logo_path)
         return self._trim_logo_image(image)
+
+    def _check_update_async(self):
+        available, latest_version, download_url = check_for_update(__version__, GITHUB_REPO)
+        if available and download_url:
+            self.after(0, lambda: self._show_update_dialog(latest_version, download_url))
+
+    def _show_update_dialog(self, latest_version: str, download_url: str):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Mise à jour disponible")
+        dialog.geometry("400x200")
+        dialog.resizable(False, False)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"Une nouvelle version est disponible : v{latest_version}",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            wraplength=360,
+        ).pack(pady=(30, 8))
+
+        ctk.CTkLabel(
+            dialog,
+            text="Voulez-vous télécharger et installer la mise à jour ?",
+            wraplength=360,
+        ).pack(pady=(0, 20))
+
+        progress_bar = ctk.CTkProgressBar(dialog, width=360)
+
+        def on_progress(ratio):
+            if ratio == -1:
+                progress_bar.pack_forget()
+            else:
+                progress_bar.pack(pady=(0, 10))
+                progress_bar.set(ratio)
+
+        def start_update():
+            btn_yes.configure(state="disabled")
+            btn_no.configure(state="disabled")
+            progress_bar.pack(pady=(0, 10))
+            progress_bar.set(0)
+            download_and_launch_installer(download_url, on_progress=lambda r: self.after(0, lambda: on_progress(r)))
+
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack()
+        btn_yes = ctk.CTkButton(btn_frame, text="Mettre à jour", command=start_update)
+        btn_yes.pack(side="left", padx=8)
+        btn_no = ctk.CTkButton(btn_frame, text="Plus tard", fg_color="gray", command=dialog.destroy)
+        btn_no.pack(side="left", padx=8)
