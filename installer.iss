@@ -1,5 +1,5 @@
 #define MyAppName "Krystal Elec"
-#define MyAppVersion "1.3"
+#define MyAppVersion "1.4"
 #define MyAppPublisher "Krystal Elec"
 #define MyAppExeName "KrystalElec.exe"
 
@@ -8,9 +8,10 @@ AppId={{A3F2B1C4-7E8D-4F5A-9B2C-1D6E3F7A8B9C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\KrystalElec
+DefaultDirName={localappdata}\KrystalElec
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+PrivilegesRequired=lowest
 OutputDir=dist
 OutputBaseFilename=KrystalElec_Setup
 SetupIconFile=images\Krystal-seul.ico
