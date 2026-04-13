@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import json
+import os
 import subprocess
-import sys
-import tempfile
 import threading
 from pathlib import Path
 from urllib import request
 from urllib.error import URLError
-import json
 
 
 def _fetch_latest_release(repo: str) -> dict | None:
@@ -50,31 +49,44 @@ def check_for_update(current_version: str, repo: str) -> tuple[bool, str, str]:
     return False, latest_tag, ""
 
 
-def download_and_launch_installer(download_url: str, on_progress=None) -> None:
-    """Télécharge l'installateur dans un dossier temporaire et le lance."""
+def _get_downloads_dir() -> Path:
+    downloads = Path.home() / "Downloads"
+    if not downloads.exists():
+        downloads = Path.home() / "Téléchargements"
+    if not downloads.exists():
+        downloads = Path.home()
+    return downloads
+
+
+def download_installer(download_url: str, on_progress=None, on_done=None) -> None:
+    """Télécharge l'installateur dans le dossier Téléchargements."""
     def _run():
         try:
-            with request.urlopen(download_url, timeout=60) as response:
+            dest = _get_downloads_dir() / "KrystalElec_Setup.exe"
+            with request.urlopen(download_url, timeout=120) as response:
                 total = int(response.headers.get("Content-Length", 0))
                 downloaded = 0
                 chunk_size = 65536
-                suffix = ".exe"
-                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                    tmp_path = Path(tmp.name)
+                with open(dest, "wb") as f:
                     while True:
                         chunk = response.read(chunk_size)
                         if not chunk:
                             break
-                        tmp.write(chunk)
+                        f.write(chunk)
                         downloaded += len(chunk)
                         if on_progress and total:
                             on_progress(downloaded / total)
 
-            subprocess.Popen([str(tmp_path)], shell=True)
-            sys.exit(0)
-        except Exception as e:
+            if on_done:
+                on_done(dest)
+
+        except Exception:
             if on_progress:
                 on_progress(-1)
 
-    thread = threading.Thread(target=_run, daemon=True)
-    thread.start()
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def open_installer_location(path: Path) -> None:
+    """Ouvre l'explorateur avec le fichier sélectionné."""
+    subprocess.Popen(["explorer", "/select,", str(path)])

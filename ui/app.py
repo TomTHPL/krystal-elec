@@ -10,7 +10,7 @@ except ImportError:  # pragma: no cover - optional dependency fallback
 
 from app_paths import get_app_paths
 from database import init_database
-from services.updater_service import check_for_update, download_and_launch_installer
+from services.updater_service import check_for_update, download_installer, open_installer_location
 from version import __version__, GITHUB_REPO
 from repositories.appointment_repository import AppointmentRepository
 from repositories.catalog_item_repository import CatalogItemRepository
@@ -296,42 +296,62 @@ class KrystalElecApp(ctk.CTk):
     def _show_update_dialog(self, latest_version: str, download_url: str):
         dialog = ctk.CTkToplevel(self)
         dialog.title("Mise à jour disponible")
-        dialog.geometry("400x200")
+        dialog.geometry("420x240")
         dialog.resizable(False, False)
         dialog.grab_set()
 
         ctk.CTkLabel(
             dialog,
-            text=f"Une nouvelle version est disponible : v{latest_version}",
+            text=f"Nouvelle version disponible : v{latest_version}",
             font=ctk.CTkFont(size=14, weight="bold"),
-            wraplength=360,
-        ).pack(pady=(30, 8))
+            wraplength=380,
+        ).pack(pady=(28, 6))
 
-        ctk.CTkLabel(
+        status_label = ctk.CTkLabel(
             dialog,
-            text="Voulez-vous télécharger et installer la mise à jour ?",
-            wraplength=360,
-        ).pack(pady=(0, 20))
+            text="Cliquez sur Télécharger pour récupérer la mise à jour.",
+            wraplength=380,
+            font=ctk.CTkFont(size=12),
+            text_color="#64748b",
+        )
+        status_label.pack(pady=(0, 16))
 
-        progress_bar = ctk.CTkProgressBar(dialog, width=360)
+        progress_bar = ctk.CTkProgressBar(dialog, width=380)
 
         def on_progress(ratio):
             if ratio == -1:
-                progress_bar.pack_forget()
+                self.after(0, lambda: status_label.configure(text="Erreur lors du téléchargement.", text_color="#dc2626"))
             else:
                 progress_bar.pack(pady=(0, 10))
                 progress_bar.set(ratio)
 
-        def start_update():
+        def on_done(path):
+            self.after(0, lambda: _show_done(path))
+
+        def _show_done(path):
+            progress_bar.pack_forget()
+            status_label.configure(
+                text=f"Téléchargé dans : {path}\n\nLancez le fichier KrystalElec_Setup.exe pour installer.",
+                text_color="#16a34a",
+            )
+            btn_yes.configure(text="Ouvrir le dossier", state="normal", command=lambda: open_installer_location(path))
+            btn_no.configure(text="Fermer")
+
+        def start_download():
             btn_yes.configure(state="disabled")
             btn_no.configure(state="disabled")
+            status_label.configure(text="Téléchargement en cours...", text_color="#64748b")
             progress_bar.pack(pady=(0, 10))
             progress_bar.set(0)
-            download_and_launch_installer(download_url, on_progress=lambda r: self.after(0, lambda: on_progress(r)))
+            download_installer(
+                download_url,
+                on_progress=lambda r: self.after(0, lambda: on_progress(r)),
+                on_done=on_done,
+            )
 
         btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         btn_frame.pack()
-        btn_yes = ctk.CTkButton(btn_frame, text="Mettre à jour", command=start_update)
+        btn_yes = ctk.CTkButton(btn_frame, text="Télécharger", command=start_download)
         btn_yes.pack(side="left", padx=8)
         btn_no = ctk.CTkButton(btn_frame, text="Plus tard", fg_color="gray", command=dialog.destroy)
         btn_no.pack(side="left", padx=8)
