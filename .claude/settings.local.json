@@ -15,7 +15,13 @@
       "Bash(gh --version)",
       "Bash(cmd /c \"gh --version\")",
       "Bash(cmd /c \"where gh\")",
-      "Bash('/c/Program Files/GitHub CLI/gh.exe' auth status)"
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' auth status)",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' repo create krystal-elec --private --source=. --remote=origin --push)",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' release create v1.0 dist/KrystalElec_Setup.exe --title 'Krystal Elec v1.0' --notes 'Première version de Krystal Elec.')",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' repo edit TomTHPL/krystal-elec --visibility public --accept-visibility-change-consequences)",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' repo view TomTHPL/krystal-elec --json visibility -q .visibility)",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' release delete v1.0 --yes)",
+      "Bash(python -c \"from ui.app import KrystalElecApp; print\\('OK'\\)\")"
     ]
   }
 }

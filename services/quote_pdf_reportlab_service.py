@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from app_paths import get_app_paths
+from services.settings_service import get_exports_dir
 
 
 @dataclass(frozen=True)
@@ -63,9 +64,10 @@ class QuotePdfService:
         return output_path
 
     def _build_output_path(self, quote_number: str) -> Path:
-        self.exports_dir.mkdir(parents=True, exist_ok=True)
+        exports_dir = get_exports_dir()
+        exports_dir.mkdir(parents=True, exist_ok=True)
         safe_number = "".join(character for character in quote_number if character.isalnum() or character in ("-", "_"))
-        return self.exports_dir / f"devis_{safe_number}.pdf"
+        return exports_dir / f"devis_{safe_number}.pdf"
 
     def _write_pdf(self, quote: dict[str, Any], client: dict[str, Any], output_path: Path) -> None:
         try:

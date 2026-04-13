@@ -21,6 +21,7 @@ from ui.pages.appointments_scheduler_page import AppointmentsSchedulerPage
 from ui.pages.clients_page import ClientsPage
 from ui.pages.home_page import HomePage
 from ui.pages.quotes_management_page import QuotesManagementPage
+from ui.pages.settings_page import SettingsPage
 
 
 ctk.set_appearance_mode("light")
@@ -125,13 +126,14 @@ class KrystalElecApp(ctk.CTk):
         nav_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         nav_frame.grid(row=2, column=0, padx=12, pady=(0, 14), sticky="nsew")
         nav_frame.grid_columnconfigure(0, weight=1)
-        nav_frame.grid_rowconfigure(5, weight=1)
+        nav_frame.grid_rowconfigure(6, weight=1)
 
         nav_items = [
-            ("Accueil",     "⌂   Accueil"),
-            ("Clients",     "◈   Clients"),
-            ("Devis",       "≡   Devis"),
-            ("Rendez-vous", "⊙   Rendez-vous"),
+            ("Accueil",      "⌂   Accueil"),
+            ("Clients",      "◈   Clients"),
+            ("Devis",        "≡   Devis"),
+            ("Rendez-vous",  "⊙   Rendez-vous"),
+            ("Paramètres",   "⚙   Paramètres"),
         ]
         for index, (page_name, label) in enumerate(nav_items):
             button = ctk.CTkButton(
@@ -225,6 +227,7 @@ class KrystalElecApp(ctk.CTk):
                 self.client_repository,
                 self.appointment_repository,
             ),
+            "Paramètres": SettingsPage(self.pages_container),
         }
 
         self.pages_container.grid_rowconfigure(0, weight=1)
