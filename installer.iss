@@ -1,5 +1,5 @@
 #define MyAppName "Krystal Elec"
-#define MyAppVersion "1.2"
+#define MyAppVersion "1.3"
 #define MyAppPublisher "Krystal Elec"
 #define MyAppExeName "KrystalElec.exe"
 

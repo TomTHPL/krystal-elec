@@ -302,7 +302,7 @@ class KrystalElecApp(ctk.CTk):
 
         ctk.CTkLabel(
             dialog,
-            text=f"Nouvelle version disponible : v{latest_version}",
+            text=f"Nouvelle version disponible : {latest_version}",
             font=ctk.CTkFont(size=14, weight="bold"),
             wraplength=380,
         ).pack(pady=(28, 6))
