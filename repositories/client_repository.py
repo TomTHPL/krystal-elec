@@ -44,10 +44,24 @@ class ClientRepository:
             )
         notify_data_changed("client_updated")
 
+    def get_quotes_count_for_client(self, client_id):
+        with get_connection() as connection:
+            row = connection.execute(
+                "SELECT COUNT(*) AS count FROM quotes WHERE client_id = ?",
+                (client_id,),
+            ).fetchone()
+        return row["count"] if row else 0
+
     def delete_client(self, client_id):
         with get_connection() as connection:
             connection.execute("DELETE FROM clients WHERE id = ?", (client_id,))
         notify_data_changed("client_deleted")
+
+    def delete_client_with_quotes(self, client_id):
+        with get_connection() as connection:
+            connection.execute("DELETE FROM quotes WHERE client_id = ?", (client_id,))
+            connection.execute("DELETE FROM clients WHERE id = ?", (client_id,))
+        notify_data_changed("client_deleted_with_quotes")
 
     def _get_next_available_id(self, connection):
         rows = connection.execute(

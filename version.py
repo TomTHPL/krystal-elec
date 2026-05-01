@@ -1,2 +1,2 @@
-__version__ = "1.4"
+__version__ = "1.5"
 GITHUB_REPO = "TomTHPL/krystal-elec"

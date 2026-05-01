@@ -214,7 +214,7 @@ class KrystalElecApp(ctk.CTk):
                 self.appointment_repository,
                 on_navigate=self.show_page,
             ),
-            "Clients": ClientsPage(self.pages_container, self.client_repository),
+            "Clients": ClientsPage(self.pages_container, self.client_repository, self.quote_repository),
             "Devis": QuotesManagementPage(
                 self.pages_container,
                 self.client_repository,

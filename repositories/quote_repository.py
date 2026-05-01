@@ -214,6 +214,32 @@ class QuoteRepository:
             connection.execute("DELETE FROM quotes WHERE id = ?", (quote_id,))
         notify_data_changed("quote_deleted")
 
+    def get_quotes_for_client(self, client_id):
+        with get_connection() as connection:
+            rows = self._execute_quote_select(
+                connection,
+                "FROM quotes q JOIN clients c ON c.id = q.client_id WHERE q.client_id = ? ORDER BY q.id DESC",
+                (client_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def duplicate_quote(self, quote_id):
+        quote = self.get_quote_by_id(quote_id)
+        if quote is None:
+            return None
+        return self.create_quote(
+            client_id=quote["client_id"],
+            statut="Brouillon",
+            lignes=quote["lignes"],
+            conditions={
+                "delai": quote["delai"],
+                "materiel_charge": quote["materiel_charge"],
+                "acompte_percent": quote["acompte_percent"],
+                "validite": quote["validite"],
+                "conditions_exceptionnelles": quote["conditions_exceptionnelles"],
+            },
+        )
+
     def _get_next_available_id(self, connection):
         rows = connection.execute(
             "SELECT id FROM quotes ORDER BY id ASC"

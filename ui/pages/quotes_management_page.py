@@ -1,5 +1,6 @@
+import csv
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 import unicodedata
 
 import customtkinter as ctk
@@ -34,6 +35,8 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.layout_mode = None
         self.responsive_breakpoint = 1360
         self.form_is_editable = True
+        self._all_quotes = []
+        self._filtered_quotes = []
 
         self.grid_columnconfigure(0, weight=3)
         self.grid_columnconfigure(1, weight=2)
@@ -53,47 +56,101 @@ class QuotesManagementPage(ctk.CTkFrame):
         header_frame.grid(row=0, column=0, columnspan=2, padx=30, pady=(28, 8), sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
 
-        title = ctk.CTkLabel(
+        ctk.CTkLabel(
             header_frame,
             text="Devis",
             font=ctk.CTkFont(size=30, weight="bold"),
             text_color="#0f172a",
-        )
-        title.grid(row=0, column=0, sticky="w")
+        ).grid(row=0, column=0, sticky="w")
 
-        subtitle = ctk.CTkLabel(
+        ctk.CTkLabel(
             header_frame,
             text="Creation, suivi et export PDF de devis professionnels",
             font=ctk.CTkFont(size=13),
             text_color="#64748b",
-        )
-        subtitle.grid(row=1, column=0, pady=(4, 0), sticky="w")
+        ).grid(row=1, column=0, pady=(4, 0), sticky="w")
 
     def _build_quotes_table(self):
         self.table_card = ctk.CTkFrame(self, corner_radius=20, fg_color="#f8fafc", border_width=1, border_color="#dbe2ea")
         self.table_card.grid(row=1, column=0, padx=(30, 15), pady=20, sticky="nsew")
         self.table_card.grid_columnconfigure(0, weight=1)
-        self.table_card.grid_rowconfigure(1, weight=1)
+        self.table_card.grid_rowconfigure(2, weight=1)
 
+        # En-tête du tableau
         table_header = ctk.CTkFrame(self.table_card, fg_color="transparent")
         table_header.grid(row=0, column=0, columnspan=2, padx=18, pady=(16, 0), sticky="ew")
         table_header.grid_columnconfigure(0, weight=1)
 
-        table_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             table_header,
             text="Liste des devis",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#0f172a",
-        )
-        table_title.grid(row=0, column=0, sticky="w")
+        ).grid(row=0, column=0, sticky="w")
 
-        table_hint = ctk.CTkLabel(
+        ctk.CTkButton(
+            table_header,
+            text="↓ Exporter CSV",
+            width=130,
+            height=30,
+            corner_radius=8,
+            fg_color="#e2e8f0",
+            hover_color="#cbd5e1",
+            text_color="#334155",
+            command=self._export_quotes_csv,
+        ).grid(row=0, column=1, sticky="e")
+
+        ctk.CTkLabel(
             table_header,
             text="Selectionnez un devis pour le consulter, le modifier ou l'exporter",
             font=ctk.CTkFont(size=12),
             text_color="#64748b",
+        ).grid(row=1, column=0, columnspan=2, pady=(3, 0), sticky="w")
+
+        # Barre de filtres
+        filter_bar = ctk.CTkFrame(self.table_card, fg_color="transparent")
+        filter_bar.grid(row=1, column=0, columnspan=2, padx=16, pady=(10, 4), sticky="ew")
+        filter_bar.grid_columnconfigure(0, weight=1)
+
+        self._filter_search = ctk.CTkEntry(
+            filter_bar,
+            placeholder_text="Rechercher par client ou numéro...",
+            height=32,
         )
-        table_hint.grid(row=1, column=0, pady=(3, 0), sticky="w")
+        self._filter_search.grid(row=0, column=0, padx=(0, 8), sticky="ew")
+        self._filter_search.bind("<KeyRelease>", lambda _e: self._apply_filters())
+
+        self._filter_status = ctk.CTkOptionMenu(
+            filter_bar,
+            values=["Tous", "Brouillon", "Envoye", "Accepte"],
+            width=130,
+            height=32,
+            command=lambda _: self._apply_filters(),
+        )
+        self._filter_status.set("Tous")
+        self._filter_status.grid(row=0, column=1, padx=(0, 8))
+
+        self._filter_year = ctk.CTkOptionMenu(
+            filter_bar,
+            values=["Toutes"],
+            width=110,
+            height=32,
+            command=lambda _: self._apply_filters(),
+        )
+        self._filter_year.set("Toutes")
+        self._filter_year.grid(row=0, column=2, padx=(0, 8))
+
+        ctk.CTkButton(
+            filter_bar,
+            text="✕ Réinitialiser",
+            width=120,
+            height=32,
+            corner_radius=8,
+            fg_color="#e2e8f0",
+            hover_color="#cbd5e1",
+            text_color="#334155",
+            command=self._reset_filters,
+        ).grid(row=0, column=3)
 
         self._configure_treeview_style()
 
@@ -115,7 +172,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.tree.column("statut", width=100, anchor="center")
         self.tree.column("total", width=130, anchor="e")
 
-        self.tree.grid(row=1, column=0, padx=16, pady=16, sticky="nsew")
+        self.tree.grid(row=2, column=0, padx=16, pady=(8, 4), sticky="nsew")
         self.tree.bind("<<TreeviewSelect>>", self._on_quote_select)
 
         vertical_scrollbar = ttk.Scrollbar(self.table_card, orient="vertical", command=self.tree.yview)
@@ -124,8 +181,8 @@ class QuotesManagementPage(ctk.CTkFrame):
             yscrollcommand=vertical_scrollbar.set,
             xscrollcommand=horizontal_scrollbar.set,
         )
-        vertical_scrollbar.grid(row=1, column=1, pady=16, sticky="ns")
-        horizontal_scrollbar.grid(row=2, column=0, padx=16, pady=(0, 16), sticky="ew")
+        vertical_scrollbar.grid(row=2, column=1, pady=(8, 4), sticky="ns")
+        horizontal_scrollbar.grid(row=3, column=0, padx=16, pady=(0, 16), sticky="ew")
 
     def _configure_treeview_style(self):
         style = ttk.Style()
@@ -195,21 +252,19 @@ class QuotesManagementPage(ctk.CTkFrame):
         form_header.grid(row=0, column=0, padx=18, pady=(16, 0), sticky="ew")
         form_header.grid_columnconfigure(0, weight=1)
 
-        form_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             form_header,
             text="Edition du devis",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#0f172a",
-        )
-        form_title.grid(row=0, column=0, sticky="w")
+        ).grid(row=0, column=0, sticky="w")
 
-        form_hint = ctk.CTkLabel(
+        ctk.CTkLabel(
             form_header,
             text="Le panneau reste accessible en entier grace au defilement vertical",
             font=ctk.CTkFont(size=12),
             text_color="#64748b",
-        )
-        form_hint.grid(row=1, column=0, pady=(3, 0), sticky="w")
+        ).grid(row=1, column=0, pady=(3, 0), sticky="w")
 
         form_scroll = ctk.CTkScrollableFrame(
             self.form_card,
@@ -227,8 +282,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.form_scroll.bind("<Button-5>", self._on_form_scroll, add="+")
         self.form_scroll.bind("<Configure>", self._on_form_scroll, add="+")
 
-        numero_title = ctk.CTkLabel(form_scroll, text="Numero", text_color="#334155")
-        numero_title.grid(row=0, column=0, padx=20, pady=(8, 6), sticky="w")
+        ctk.CTkLabel(form_scroll, text="Numero", text_color="#334155").grid(row=0, column=0, padx=20, pady=(8, 6), sticky="w")
 
         self.numero_label = ctk.CTkLabel(
             form_scroll,
@@ -238,8 +292,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         )
         self.numero_label.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="w")
 
-        client_label = ctk.CTkLabel(form_scroll, text="Client", text_color="#334155")
-        client_label.grid(row=2, column=0, padx=20, pady=(8, 6), sticky="w")
+        ctk.CTkLabel(form_scroll, text="Client", text_color="#334155").grid(row=2, column=0, padx=20, pady=(8, 6), sticky="w")
 
         self.client_option = ttk.Combobox(
             form_scroll,
@@ -254,8 +307,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.client_option.bind("<Return>", self._on_client_selected)
         self.client_option.bind("<FocusOut>", lambda _event: self.after(120, self._hide_client_popup), add="+")
 
-        status_label = ctk.CTkLabel(form_scroll, text="Statut", text_color="#334155")
-        status_label.grid(row=4, column=0, padx=20, pady=(8, 6), sticky="w")
+        ctk.CTkLabel(form_scroll, text="Statut", text_color="#334155").grid(row=4, column=0, padx=20, pady=(8, 6), sticky="w")
 
         self.status_option = ctk.CTkOptionMenu(
             form_scroll,
@@ -270,8 +322,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         catalog_header.grid(row=6, column=0, columnspan=2, padx=20, pady=(10, 6), sticky="ew")
         catalog_header.grid_columnconfigure(0, weight=1)
 
-        line_title = ctk.CTkLabel(catalog_header, text="Nouvelle ligne", text_color="#334155")
-        line_title.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(catalog_header, text="Nouvelle ligne", text_color="#334155").grid(row=0, column=0, sticky="w")
 
         self.catalog_button = ctk.CTkButton(
             catalog_header,
@@ -283,8 +334,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         )
         self.catalog_button.grid(row=0, column=1, sticky="e")
 
-        item_label = ctk.CTkLabel(form_scroll, text="Produit / service", text_color="#334155")
-        item_label.grid(row=7, column=0, padx=20, pady=(0, 6), sticky="w")
+        ctk.CTkLabel(form_scroll, text="Produit / service", text_color="#334155").grid(row=7, column=0, padx=20, pady=(0, 6), sticky="w")
 
         self.catalog_option = ttk.Combobox(
             form_scroll,
@@ -368,26 +418,23 @@ class QuotesManagementPage(ctk.CTkFrame):
         conditions_frame.grid(row=14, column=0, columnspan=2, padx=20, pady=(0, 12), sticky="ew")
         conditions_frame.grid_columnconfigure(1, weight=1)
 
-        conditions_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             conditions_frame,
             text="Conditions du devis",
             font=ctk.CTkFont(size=15, weight="bold"),
             text_color="#111827",
-        )
-        conditions_title.grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 10), sticky="w")
+        ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 10), sticky="w")
 
-        conditions_hint = ctk.CTkLabel(
+        ctk.CTkLabel(
             conditions_frame,
             text="Adaptez facilement les clauses avant impression ou export PDF.",
             font=ctk.CTkFont(size=11),
             text_color="#6b7280",
-        )
-        conditions_hint.grid(row=1, column=0, columnspan=2, padx=12, pady=(0, 8), sticky="w")
+        ).grid(row=1, column=0, columnspan=2, padx=12, pady=(0, 8), sticky="w")
 
         self.delai_entry = self._create_condition_entry(conditions_frame, 2, "Delai")
 
-        materiel_label = ctk.CTkLabel(conditions_frame, text="Materiel", text_color="#374151")
-        materiel_label.grid(row=3, column=0, padx=12, pady=6, sticky="w")
+        ctk.CTkLabel(conditions_frame, text="Materiel", text_color="#374151").grid(row=3, column=0, padx=12, pady=6, sticky="w")
         self.materiel_option = ctk.CTkOptionMenu(
             conditions_frame,
             values=["Client", "Electricien"],
@@ -400,12 +447,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.acompte_entry = self._create_condition_entry(conditions_frame, 4, "Acompte (%)")
         self.validite_entry = self._create_condition_entry(conditions_frame, 5, "Validite")
 
-        exceptional_label = ctk.CTkLabel(
-            conditions_frame,
-            text="Condition(s) exceptionnelle(s)",
-            text_color="#374151",
-        )
-        exceptional_label.grid(row=6, column=0, padx=12, pady=(6, 6), sticky="nw")
+        ctk.CTkLabel(conditions_frame, text="Condition(s) exceptionnelle(s)", text_color="#374151").grid(row=6, column=0, padx=12, pady=(6, 6), sticky="nw")
         self.conditions_exceptionnelles_text = ctk.CTkTextbox(
             conditions_frame,
             height=96,
@@ -416,6 +458,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         )
         self.conditions_exceptionnelles_text.grid(row=6, column=1, padx=12, pady=(6, 12), sticky="ew")
 
+        # Boutons d'action
         buttons_frame = ctk.CTkFrame(form_scroll, fg_color="transparent")
         buttons_frame.grid(row=15, column=0, columnspan=2, padx=20, pady=(0, 20), sticky="ew")
         buttons_frame.grid_columnconfigure((0, 1, 2), weight=1)
@@ -468,10 +511,23 @@ class QuotesManagementPage(ctk.CTkFrame):
         )
         self.new_button.grid(row=1, column=1, padx=6, pady=(10, 0), sticky="ew")
 
+        self.duplicate_button = ctk.CTkButton(
+            buttons_frame,
+            text="Dupliquer",
+            fg_color="#7c3aed",
+            hover_color="#6d28d9",
+            command=self.duplicate_quote,
+        )
+        self.duplicate_button.grid(row=1, column=2, padx=(6, 0), pady=(10, 0), sticky="ew")
+
         self.refresh_client_choices()
         self.refresh_catalog_choices()
         self.refresh_quotes()
         self._reset_conditions_defaults()
+
+    # ------------------------------------------------------------------
+    # Responsive / layout
+    # ------------------------------------------------------------------
 
     def _on_resize(self, _event):
         self._close_open_dropdowns()
@@ -517,6 +573,10 @@ class QuotesManagementPage(ctk.CTkFrame):
 
         self.layout_mode = target_mode
 
+    # ------------------------------------------------------------------
+    # Etat du formulaire
+    # ------------------------------------------------------------------
+
     def _set_form_editable(self, editable):
         self.form_is_editable = editable
         state = "normal" if editable else "disabled"
@@ -542,17 +602,24 @@ class QuotesManagementPage(ctk.CTkFrame):
             self.edit_button.grid()
             self.delete_button.grid()
             self.export_button.grid()
+            self.duplicate_button.grid()
             self.validate_button.grid_remove()
         elif has_selection and self.is_edit_mode:
             self.edit_button.grid_remove()
             self.delete_button.grid()
             self.export_button.grid_remove()
+            self.duplicate_button.grid_remove()
             self.validate_button.grid()
         else:
             self.edit_button.grid_remove()
             self.delete_button.grid_remove()
             self.export_button.grid_remove()
+            self.duplicate_button.grid_remove()
             self.validate_button.grid_remove()
+
+    # ------------------------------------------------------------------
+    # Données clients / catalogue
+    # ------------------------------------------------------------------
 
     def refresh_client_choices(self):
         clients = self.client_repository.get_all_clients()
@@ -611,12 +678,52 @@ class QuotesManagementPage(ctk.CTkFrame):
             self.refresh_catalog_choices,
         )
 
+    # ------------------------------------------------------------------
+    # Filtres
+    # ------------------------------------------------------------------
+
     def refresh_quotes(self):
+        self._all_quotes = self.quote_repository.get_all_quotes()
+
+        years = sorted(
+            {q.get("created_at", "")[:4] for q in self._all_quotes if q.get("created_at", "")[:4].isdigit()},
+            reverse=True,
+        )
+        year_values = ["Toutes"] + years
+        self._filter_year.configure(values=year_values)
+        if self._filter_year.get() not in year_values:
+            self._filter_year.set("Toutes")
+
+        self._apply_filters()
+
+        if self.selected_quote_id is None:
+            self.numero_label.configure(text=self.quote_repository.get_next_quote_number())
+
+    def _apply_filters(self):
+        search = self._normalize_search_text(self._filter_search.get())
+        status_filter = self._filter_status.get()
+        year_filter = self._filter_year.get()
+
+        self._filtered_quotes = []
+        for quote in self._all_quotes:
+            if status_filter != "Tous":
+                if quote["statut"].strip().lower() != status_filter.strip().lower():
+                    continue
+            if year_filter != "Toutes":
+                if (quote.get("created_at") or "")[:4] != year_filter:
+                    continue
+            if search:
+                haystack = self._normalize_search_text(
+                    f"{quote['numero']} {quote['client_nom']}"
+                )
+                if search not in haystack:
+                    continue
+            self._filtered_quotes.append(quote)
+
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        quotes = self.quote_repository.get_all_quotes()
-        for index, quote in enumerate(quotes):
+        for index, quote in enumerate(self._filtered_quotes):
             row_tag = "evenrow" if index % 2 == 0 else "oddrow"
             status_tag = self._get_status_tag(quote["statut"])
             self.tree.insert(
@@ -637,8 +744,47 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.tree.tag_configure("status_envoye", foreground="#2563eb")
         self.tree.tag_configure("status_accepte", foreground="#059669")
 
-        if self.selected_quote_id is None:
-            self.numero_label.configure(text=self.quote_repository.get_next_quote_number())
+    def _reset_filters(self):
+        self._filter_search.delete(0, tk.END)
+        self._filter_status.set("Tous")
+        self._filter_year.set("Toutes")
+        self._apply_filters()
+
+    # ------------------------------------------------------------------
+    # Export CSV
+    # ------------------------------------------------------------------
+
+    def _export_quotes_csv(self):
+        if not self._filtered_quotes:
+            messagebox.showwarning("Aucune donnée", "Aucun devis à exporter (la liste est vide).")
+            return
+
+        path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV", "*.csv"), ("Tous les fichiers", "*.*")],
+            initialfile="devis_export.csv",
+            title="Exporter les devis en CSV",
+        )
+        if not path:
+            return
+
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f, delimiter=";")
+            writer.writerow(["Numéro", "Client", "Statut", "Total (EUR)", "Date création"])
+            for q in self._filtered_quotes:
+                writer.writerow([
+                    q["numero"],
+                    q["client_nom"],
+                    q["statut"],
+                    f"{q['total']:.2f}",
+                    (q.get("created_at") or "")[:10],
+                ])
+
+        messagebox.showinfo("Export CSV", f"Devis exportés dans :\n{path}")
+
+    # ------------------------------------------------------------------
+    # Actions devis
+    # ------------------------------------------------------------------
 
     def add_line(self):
         if not self.catalog_map:
@@ -753,6 +899,20 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.reset_form()
         messagebox.showinfo("Devis supprime", "Le devis a bien ete supprime.")
 
+    def duplicate_quote(self):
+        if self.selected_quote_id is None:
+            messagebox.showwarning("Selection requise", "Selectionnez un devis a dupliquer.")
+            return
+
+        new_id = self.quote_repository.duplicate_quote(self.selected_quote_id)
+        if new_id is None:
+            messagebox.showerror("Erreur", "Impossible de dupliquer ce devis.")
+            return
+
+        self.refresh_quotes()
+        self.reset_form()
+        messagebox.showinfo("Devis dupliqué", f"Le devis a été dupliqué avec le numéro {self.quote_repository.get_quote_by_id(new_id)['numero']} (statut : Brouillon).")
+
     def export_quote_pdf(self):
         if self.selected_quote_id is None:
             messagebox.showwarning("Selection requise", "Selectionnez un devis a exporter.")
@@ -794,6 +954,10 @@ class QuotesManagementPage(ctk.CTkFrame):
         self.tree.selection_remove(self.tree.selection())
         self._set_form_editable(True)
         self._sync_action_buttons()
+
+    # ------------------------------------------------------------------
+    # Lignes du devis
+    # ------------------------------------------------------------------
 
     def _refresh_lines_table(self):
         for item in self.lines_tree.get_children():
@@ -852,6 +1016,10 @@ class QuotesManagementPage(ctk.CTkFrame):
         if value is not None:
             self.unit_price_entry.insert(0, self._format_currency(value))
         self.unit_price_entry.configure(state="readonly")
+
+    # ------------------------------------------------------------------
+    # Combobox clients / catalogue
+    # ------------------------------------------------------------------
 
     def _on_catalog_selected(self, selected_name=None):
         if isinstance(selected_name, tk.Event):
@@ -942,7 +1110,6 @@ class QuotesManagementPage(ctk.CTkFrame):
         if tuple(combobox.cget("values")) != tuple(filtered_values):
             combobox.configure(values=filtered_values)
 
-        # Preserve user input after list refresh to avoid losing typed text.
         if combobox.get() != current_text:
             combobox.delete(0, tk.END)
             combobox.insert(0, current_text)
@@ -1063,6 +1230,10 @@ class QuotesManagementPage(ctk.CTkFrame):
             if unicodedata.category(character) != "Mn"
         )
 
+    # ------------------------------------------------------------------
+    # Sélection devis
+    # ------------------------------------------------------------------
+
     def _on_quote_select(self, _event):
         selected = self.tree.selection()
         if not selected:
@@ -1104,6 +1275,10 @@ class QuotesManagementPage(ctk.CTkFrame):
         self._set_form_editable(False)
         self._sync_action_buttons()
 
+    # ------------------------------------------------------------------
+    # Validation formulaire
+    # ------------------------------------------------------------------
+
     def _validate_quote_form(self):
         if not self.client_map:
             messagebox.showwarning("Client requis", "Ajoutez d'abord un client dans le module Clients.")
@@ -1139,6 +1314,10 @@ class QuotesManagementPage(ctk.CTkFrame):
 
         return client_id
 
+    # ------------------------------------------------------------------
+    # Helpers formatage / conditions
+    # ------------------------------------------------------------------
+
     def _format_currency(self, value):
         return f"{value:.2f} EUR"
 
@@ -1158,9 +1337,7 @@ class QuotesManagementPage(ctk.CTkFrame):
         return "status_brouillon"
 
     def _create_condition_entry(self, parent, row, label_text):
-        label = ctk.CTkLabel(parent, text=label_text, text_color="#374151")
-        label.grid(row=row, column=0, padx=12, pady=6, sticky="w")
-
+        ctk.CTkLabel(parent, text=label_text, text_color="#374151").grid(row=row, column=0, padx=12, pady=6, sticky="w")
         entry = ctk.CTkEntry(parent)
         entry.grid(row=row, column=1, padx=12, pady=6, sticky="ew")
         return entry
